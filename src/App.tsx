@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { 
   Shield, 
   Lock, 
@@ -905,6 +906,7 @@ export default function App() {
       <FinalCTASection />
       <Footer />
       <StickyCTA />
+      <SpeedInsights />
     </div>
   );
 }
