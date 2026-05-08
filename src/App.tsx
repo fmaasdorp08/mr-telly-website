@@ -87,6 +87,10 @@ const WHATSAPP_MESSAGE = encodeURIComponent(
 );
 const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MESSAGE}`;
 
+// ---- Call CTA Settings ----
+const CALL_NUMBER_DISPLAY = "068 807 9487";
+const CALL_NUMBER_LINK = "tel:+27688079487";
+
 // ---- Navigation ----
 function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -553,7 +557,7 @@ function LeadFormSection() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
 
 const handleSubmit = (e: React.FormEvent) => {
   e.preventDefault();
