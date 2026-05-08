@@ -553,13 +553,24 @@ function LeadFormSection() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+  
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validate()) {
-      setSubmitted(true);
-    }
-  };
+const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (validate()) {
+    const message = encodeURIComponent(
+      `Hi MR TELLy, I would like to request a free assessment.%0A%0A` +
+      `Full Name: ${formData.fullName}%0A` +
+      `Phone: ${formData.phone}%0A` +
+      `Email: ${formData.email}%0A` +
+      `Message: ${formData.message || 'Not provided'}`
+    );
+
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
+    setSubmitted(true);
+  }
+};
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
