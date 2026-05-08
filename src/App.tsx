@@ -861,7 +861,7 @@ function Footer() {
         <div className="pt-8 border-t border-white/10">
           <p className="text-xs text-white/40 leading-relaxed mb-4">
             Disclaimer: Debt review is a formal legal process under the National Credit Act 34 of 2005. 
-            MR TELLy is a registered debt counselling practice. The information on this website is for 
+            MR TELLy is a registered company with registration 2025/883156/07. The information on this website is for 
             educational purposes only and does not constitute financial advice. Results may vary based on 
             individual circumstances.
           </p>
