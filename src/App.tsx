@@ -80,9 +80,12 @@ function useStaggerAnimation(count: number, delay = 100) {
   return { containerRef, visibleItems };
 }
 
-// ---- WhatsApp Number ----
-const WHATSAPP_NUMBER = "27821234567";
-const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}`;
+// ---- WhatsApp CTA Settings ----
+const WHATSAPP_NUMBER = "27688079487";
+const WHATSAPP_MESSAGE = encodeURIComponent(
+  "Hi MR TELLy, I would like to check if I qualify for debt review or debt removal support."
+);
+const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MESSAGE}`;
 
 // ---- Navigation ----
 function Navigation() {
