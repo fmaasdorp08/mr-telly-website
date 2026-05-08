@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { 
   Shield, 
   Lock, 
@@ -908,6 +909,7 @@ export default function App() {
       <FinalCTASection />
       <Footer />
       <StickyCTA />
+      <Analytics />
     </div>
   );
 }
