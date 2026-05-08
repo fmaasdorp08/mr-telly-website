@@ -815,16 +815,25 @@ function Footer() {
           <div>
             <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Quick Links</h4>
             <ul className="space-y-2">
-              {['How It Works', 'Benefits', 'Reviews', 'Contact'].map(link => (
-                <li key={link}>
-                  <a 
-                    href={`#${link.toLowerCase().replace(' ', '-')}`} 
-                    className="text-sm hover:text-teal transition-colors"
-                  >
-                    {link}
-                  </a>
-                </li>
-              ))}
+              {[
+  { label: 'How It Works', href: '#how-it-works' },
+  { label: 'Benefits', href: '#benefits' },
+  { label: 'Reviews', href: '#testimonials' },
+  { label: 'Contact', href: '#contact' },
+].map(link => (
+  <li key={link.label}>
+    <a
+      href={link.href}
+      onClick={(e) => {
+        e.preventDefault();
+        document.querySelector(link.href)?.scrollIntoView({ behavior: 'smooth' });
+      }}
+      className="text-sm hover:text-teal transition-colors"
+    >
+      {link.label}
+    </a>
+  </li>
+))}
             </ul>
           </div>
 
