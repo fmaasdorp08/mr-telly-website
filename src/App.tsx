@@ -29,7 +29,8 @@ import {
 ============================================================ */
 
 // ---- Scroll Animation Hook ----
-function useScrollAnimation(threshold = 0.15) {
+// Uses rootMargin to trigger slightly before element enters viewport (feels snappier)
+function useScrollAnimation(threshold = 0.12) {
   const ref = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -41,7 +42,7 @@ function useScrollAnimation(threshold = 0.15) {
           observer.disconnect();
         }
       },
-      { threshold }
+      { threshold, rootMargin: '0px 0px -40px 0px' }
     );
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
@@ -51,7 +52,8 @@ function useScrollAnimation(threshold = 0.15) {
 }
 
 // ---- Stagger Animation Hook ----
-function useStaggerAnimation(count: number, delay = 100) {
+// Tighter, faster stagger (80ms) feels more Apple-like vs 100ms+
+function useStaggerAnimation(count: number, delay = 80) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [visibleItems, setVisibleItems] = useState<boolean[]>(new Array(count).fill(false));
 
@@ -71,13 +73,24 @@ function useStaggerAnimation(count: number, delay = 100) {
           observer.disconnect();
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
     );
     if (containerRef.current) observer.observe(containerRef.current);
     return () => observer.disconnect();
   }, [count, delay]);
 
   return { containerRef, visibleItems };
+}
+
+// ---- Parallax hook for hero ----
+function useParallax(speed = 0.4) {
+  const [offset, setOffset] = useState(0);
+  useEffect(() => {
+    const handleScroll = () => setOffset(window.scrollY * speed);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [speed]);
+  return offset;
 }
 
 // ---- WhatsApp CTA Settings ----
@@ -201,52 +214,71 @@ function Navigation() {
 
 // ---- Hero Section ----
 function HeroSection() {
+  const parallaxOffset = useParallax(0.25);
+
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
-      {/* Background */}
+      {/* Background with subtle parallax */}
       <div className="absolute inset-0">
-        <img 
-          src="/images/hero-bg.jpg" 
-          alt="" 
-          className="w-full h-full object-cover"
+        <img
+          src="/images/hero-bg.jpg"
+          alt=""
+          className="w-full h-full object-cover will-change-transform"
+          style={{ transform: `translateY(${parallaxOffset}px) scale(1.08)` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-navy/95 via-navy/85 to-navy/70" />
+        <div className="absolute inset-0 bg-gradient-to-r from-navy/95 via-navy/85 to-navy/60" />
+        {/* Subtle vignette bottom */}
+        <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-navy/60 to-transparent pointer-events-none" />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 lg:py-40">
         <div className="max-w-3xl">
-          {/* Badge */}
-          <div className="animate-fade-in inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 mb-8">
+          {/* Badge — fades in first */}
+          <div
+            className="animate-fade-in inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20 mb-8"
+            style={{ animationDelay: '0s' }}
+          >
             <Shield className="w-4 h-4 text-teal" />
-            <span className="text-sm text-white/90 font-medium">Registered Debt Review Specialists</span>
+            <span className="text-sm text-white/90 font-medium tracking-wide">Registered Debt Review Specialists</span>
           </div>
 
-          {/* Headline */}
-          <h1 className="animate-fade-up text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight mb-6" style={{ animationDelay: '0.1s' }}>
-            Take Control of Your Debt.{" "}
+          {/* Headline — hero-title animation (opacity + scale + blur) */}
+          <h1
+            className="animate-hero-title text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight mb-6 text-balance"
+            style={{ animationDelay: '0.15s' }}
+          >
+            Take Control of Your Debt.{' '}
             <span className="text-teal">Start Fresh Today.</span>
           </h1>
 
           {/* Subheadline */}
-          <p className="animate-fade-up text-lg sm:text-xl text-white/80 leading-relaxed mb-10 max-w-2xl" style={{ animationDelay: '0.2s' }}>
-            Professional, confidential debt review support designed to help you regain financial stability. 
+          <p
+            className="animate-fade-up text-lg sm:text-xl text-white/80 leading-relaxed mb-10 max-w-2xl"
+            style={{ animationDelay: '0.3s' }}
+          >
+            Professional, confidential debt review support designed to help you regain financial stability.
             Trusted by thousands of South Africans.
           </p>
 
           {/* CTAs */}
-          <div className="animate-fade-up flex flex-col sm:flex-row gap-4 mb-12" style={{ animationDelay: '0.3s' }}>
+          <div
+            className="animate-fade-up flex flex-col sm:flex-row gap-4 mb-12"
+            style={{ animationDelay: '0.42s' }}
+          >
             <a
               href="#contact"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-teal text-white font-semibold rounded-lg hover:bg-teal-dark transition-all hover:shadow-lg hover:shadow-teal/25 text-center"
+              className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-teal text-white font-semibold rounded-xl hover:bg-teal-dark transition-all duration-300 text-center animate-glow-pulse hover:scale-[1.03] active:scale-[0.98]"
+              style={{ transitionTimingFunction: 'cubic-bezier(0.34,1.56,0.64,1)' }}
             >
               Check If You Qualify
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
             </a>
             <a
               href={WHATSAPP_LINK}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-lg border border-white/30 hover:bg-white/20 transition-all text-center"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-xl border border-white/30 hover:bg-white/20 hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 text-center"
+              style={{ transitionTimingFunction: 'cubic-bezier(0.34,1.56,0.64,1)' }}
             >
               <MessageCircle className="w-5 h-5" />
               Chat on WhatsApp
@@ -254,7 +286,10 @@ function HeroSection() {
           </div>
 
           {/* Trust Indicators */}
-          <div className="animate-fade-up flex flex-wrap items-center gap-6" style={{ animationDelay: '0.4s' }}>
+          <div
+            className="animate-fade-up flex flex-wrap items-center gap-6"
+            style={{ animationDelay: '0.55s' }}
+          >
             <div className="flex items-center gap-2">
               <div className="flex -space-x-2">
                 <img src="/images/consultant-1.jpg" alt="" className="w-8 h-8 rounded-full border-2 border-navy object-cover" />
@@ -274,9 +309,9 @@ function HeroSection() {
         </div>
       </div>
 
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-        <ChevronDown className="w-6 h-6 text-white/50" />
+      {/* Scroll Indicator — custom smooth bounce, not the jerky default */}
+      <div className="absolute bottom-8 left-1/2 animate-scroll-bounce">
+        <ChevronDown className="w-6 h-6 text-white/60" />
       </div>
     </section>
   );
@@ -300,9 +335,12 @@ function TrustStrip() {
             <div
               key={item.text}
               className={`flex items-center justify-center gap-3 transition-all duration-700 ${
-                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
               }`}
-              style={{ transitionDelay: `${i * 100}ms` }}
+              style={{
+                transitionDelay: `${i * 90}ms`,
+                transitionTimingFunction: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+              }}
             >
               <item.icon className="w-5 h-5 text-teal flex-shrink-0" />
               <span className="text-sm font-medium text-navy">{item.text}</span>
@@ -340,43 +378,76 @@ function ProblemSolutionSection() {
 
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Problems */}
-          <div className={`transition-all duration-700 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'}`}>
+          <div
+            className={`transition-all duration-900 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}
+            style={{ transitionTimingFunction: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)', transitionDuration: '800ms' }}
+          >
             <h3 className="text-xl font-semibold text-navy mb-6 flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-red-500" />
               Common Challenges
             </h3>
             <div className="space-y-4">
               {problems.map((p, i) => (
-                <div key={i} className="flex items-start gap-4 p-4 bg-white rounded-xl border border-red-100 shadow-sm">
+                <div
+                  key={i}
+                  className={`flex items-start gap-4 p-4 bg-white rounded-xl border border-red-100 shadow-sm hover-float transition-all`}
+                  style={{
+                    transitionDelay: isVisible ? `${i * 80}ms` : '0ms',
+                    opacity: isVisible ? 1 : 0,
+                    transform: isVisible ? 'translateY(0)' : 'translateY(12px)',
+                    transitionProperty: 'opacity, transform',
+                    transitionDuration: '600ms',
+                    transitionTimingFunction: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                  }}
+                >
                   <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0">
                     <p.icon className="w-5 h-5 text-red-500" />
                   </div>
-                  <p className="text-navy/80 font-medium">{p.text}</p>
+                  <p className="text-navy/80 font-medium self-center">{p.text}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Arrow */}
+          {/* Arrow — rotates in */}
           <div className="hidden lg:flex justify-center">
-            <div className="w-16 h-16 bg-teal rounded-full flex items-center justify-center shadow-lg shadow-teal/30">
+            <div
+              className={`w-16 h-16 bg-teal rounded-full flex items-center justify-center shadow-lg shadow-teal/30 transition-all duration-700 ${
+                isVisible ? 'opacity-100 scale-100 rotate-0' : 'opacity-0 scale-75 -rotate-45'
+              }`}
+              style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)', transitionDelay: '300ms' }}
+            >
               <ArrowRight className="w-8 h-8 text-white" />
             </div>
           </div>
 
           {/* Solutions */}
-          <div className={`transition-all duration-700 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`} style={{ transitionDelay: '200ms' }}>
+          <div
+            className={`transition-all duration-900 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'}`}
+            style={{ transitionTimingFunction: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)', transitionDuration: '800ms', transitionDelay: '150ms' }}
+          >
             <h3 className="text-xl font-semibold text-navy mb-6 flex items-center gap-2">
               <CheckCircle className="w-5 h-5 text-teal" />
               How MR TELLy Helps
             </h3>
             <div className="space-y-4">
               {solutions.map((s, i) => (
-                <div key={i} className="flex items-start gap-4 p-4 bg-white rounded-xl border border-teal/20 shadow-sm">
+                <div
+                  key={i}
+                  className="flex items-start gap-4 p-4 bg-white rounded-xl border border-teal/20 shadow-sm hover-float"
+                  style={{
+                    transitionDelay: isVisible ? `${150 + i * 80}ms` : '0ms',
+                    opacity: isVisible ? 1 : 0,
+                    transform: isVisible ? 'translateY(0)' : 'translateY(12px)',
+                    transitionProperty: 'opacity, transform',
+                    transitionDuration: '600ms',
+                    transitionTimingFunction: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                  }}
+                >
                   <div className="w-10 h-10 bg-teal/10 rounded-lg flex items-center justify-center flex-shrink-0">
                     <s.icon className="w-5 h-5 text-teal" />
                   </div>
-                  <p className="text-navy/80 font-medium">{s.text}</p>
+                  <p className="text-navy/80 font-medium self-center">{s.text}</p>
                 </div>
               ))}
             </div>
@@ -410,16 +481,36 @@ function HowItWorksSection() {
           {steps.map((step, i) => (
             <div
               key={step.num}
-              className={`relative text-center transition-all duration-700 ${
-                visibleItems[i] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              }`}
+              className="relative text-center"
+              style={{
+                opacity: visibleItems[i] ? 1 : 0,
+                transform: visibleItems[i] ? 'translateY(0) scale(1)' : 'translateY(28px) scale(0.96)',
+                transition: 'opacity 700ms cubic-bezier(0.25,0.46,0.45,0.94), transform 700ms cubic-bezier(0.34,1.56,0.64,1)',
+              }}
             >
-              {/* Connector Line */}
+              {/* Connector Line — animated width */}
               {i < steps.length - 1 && (
-                <div className="hidden lg:block absolute top-10 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-teal/30 to-transparent" />
+                <div className="hidden lg:block absolute top-10 left-[60%] w-[80%] h-0.5 overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-teal/40 to-transparent transition-all duration-1000"
+                    style={{
+                      width: visibleItems[i] ? '100%' : '0%',
+                      transitionDelay: '400ms',
+                      transitionTimingFunction: 'cubic-bezier(0.25,0.46,0.45,0.94)',
+                    }}
+                  />
+                </div>
               )}
-              
-              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-teal to-teal-dark rounded-2xl flex items-center justify-center shadow-lg shadow-teal/20">
+
+              {/* Step number badge — spring scale-in */}
+              <div
+                className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-teal to-teal-dark rounded-2xl flex items-center justify-center shadow-lg shadow-teal/20 transition-transform duration-500"
+                style={{
+                  transform: visibleItems[i] ? 'scale(1) rotate(0deg)' : 'scale(0.8) rotate(-6deg)',
+                  transitionTimingFunction: 'cubic-bezier(0.34,1.56,0.64,1)',
+                  transitionDelay: '60ms',
+                }}
+              >
                 <span className="text-2xl font-bold text-white">{step.num}</span>
               </div>
               <h3 className="text-lg font-semibold text-navy mb-2">{step.title}</h3>
@@ -454,12 +545,20 @@ function BenefitsSection() {
           {benefits.map((b, i) => (
             <div
               key={b.title}
-              className={`group p-8 bg-white rounded-2xl border border-slate-100 hover:border-teal/30 hover:shadow-lg hover:shadow-teal/5 transition-all duration-500 ${
-                visibleItems[i] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              }`}
+              className="group p-8 bg-white rounded-2xl border border-slate-100 hover:border-teal/30 hover:shadow-xl hover:shadow-teal/8 cursor-default"
+              style={{
+                opacity: visibleItems[i] ? 1 : 0,
+                transform: visibleItems[i] ? 'translateY(0) scale(1)' : 'translateY(24px) scale(0.97)',
+                transition: 'opacity 650ms cubic-bezier(0.25,0.46,0.45,0.94), transform 650ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 400ms ease, border-color 400ms ease',
+              }}
             >
-              <div className="w-14 h-14 bg-gradient-to-br from-teal/10 to-teal/5 rounded-xl flex items-center justify-center mb-6 group-hover:from-teal group-hover:to-teal-dark transition-all duration-300">
-                <b.icon className="w-7 h-7 text-teal group-hover:text-white transition-colors" />
+              {/* Icon — springs on group hover */}
+              <div className="w-14 h-14 bg-gradient-to-br from-teal/10 to-teal/5 rounded-xl flex items-center justify-center mb-6 group-hover:from-teal group-hover:to-teal-dark transition-all duration-500"
+                style={{ transitionTimingFunction: 'cubic-bezier(0.34,1.56,0.64,1)' }}
+              >
+                <b.icon className="w-7 h-7 text-teal group-hover:text-white transition-colors duration-300 group-hover:scale-110"
+                  style={{ transitionTimingFunction: 'cubic-bezier(0.34,1.56,0.64,1)' }}
+                />
               </div>
               <h3 className="text-lg font-semibold text-navy mb-2">{b.title}</h3>
               <p className="text-slate-600 text-sm leading-relaxed">{b.desc}</p>
@@ -510,9 +609,12 @@ function TestimonialsSection() {
           {testimonials.map((t, i) => (
             <div
               key={t.name}
-              className={`p-8 bg-slate-50 rounded-2xl border border-slate-100 transition-all duration-700 hover:shadow-lg ${
-                visibleItems[i] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              }`}
+              className="p-8 bg-slate-50 rounded-2xl border border-slate-100 hover-float"
+              style={{
+                opacity: visibleItems[i] ? 1 : 0,
+                transform: visibleItems[i] ? 'translateY(0)' : 'translateY(28px)',
+                transition: 'opacity 700ms cubic-bezier(0.25,0.46,0.45,0.94), transform 700ms cubic-bezier(0.25,0.46,0.45,0.94)',
+              }}
             >
               <div className="flex gap-1 mb-4">
                 {[...Array(t.rating)].map((_, j) => (
@@ -588,7 +690,15 @@ const handleSubmit = (e: React.FormEvent) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left Content */}
-          <div className={`transition-all duration-700 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'}`}>
+          <div
+            className="transition-all"
+            style={{
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible ? 'translateX(0)' : 'translateX(-32px)',
+              transitionDuration: '800ms',
+              transitionTimingFunction: 'cubic-bezier(0.25,0.46,0.45,0.94)',
+            }}
+          >
             <span className="text-sm font-semibold text-teal uppercase tracking-wider">Get Started</span>
             <h2 className="mt-3 text-3xl lg:text-4xl font-bold text-white">Get Help Now</h2>
             <p className="mt-4 text-lg text-white/70 leading-relaxed">
@@ -628,7 +738,16 @@ const handleSubmit = (e: React.FormEvent) => {
           </div>
 
           {/* Form */}
-          <div className={`transition-all duration-700 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`} style={{ transitionDelay: '200ms' }}>
+          <div
+            className="transition-all"
+            style={{
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible ? 'translateX(0)' : 'translateX(32px)',
+              transitionDuration: '800ms',
+              transitionDelay: '160ms',
+              transitionTimingFunction: 'cubic-bezier(0.25,0.46,0.45,0.94)',
+            }}
+          >
             <div className="bg-white rounded-2xl p-8 lg:p-10 shadow-2xl">
               {submitted ? (
                 <div className="text-center py-12">
@@ -730,8 +849,21 @@ function WhatsAppSection() {
   return (
     <section ref={ref} className="py-16 lg:py-20 bg-teal">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div className={`transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <MessageCircle className="w-12 h-12 text-white/80 mx-auto mb-6" />
+        <div
+          style={{
+            opacity: isVisible ? 1 : 0,
+            transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(24px) scale(0.97)',
+            transition: 'opacity 800ms cubic-bezier(0.25,0.46,0.45,0.94), transform 800ms cubic-bezier(0.34,1.56,0.64,1)',
+          }}
+        >
+          <MessageCircle
+            className="w-12 h-12 text-white/80 mx-auto mb-6"
+            style={{
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible ? 'scale(1) rotate(0deg)' : 'scale(0.5) rotate(-20deg)',
+              transition: 'opacity 600ms cubic-bezier(0.34,1.56,0.64,1) 200ms, transform 600ms cubic-bezier(0.34,1.56,0.64,1) 200ms',
+            }}
+          />
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
             Speak to a Consultant Now
           </h2>
@@ -742,9 +874,10 @@ function WhatsAppSection() {
             href={WHATSAPP_LINK}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-3 px-10 py-5 bg-white text-teal font-bold rounded-xl hover:bg-white/90 transition-all hover:shadow-xl text-lg"
+            className="group inline-flex items-center gap-3 px-10 py-5 bg-white text-teal font-bold rounded-xl hover:bg-white/95 transition-all duration-300 hover:shadow-2xl text-lg hover:scale-[1.04] active:scale-[0.98]"
+            style={{ transitionTimingFunction: 'cubic-bezier(0.34,1.56,0.64,1)' }}
           >
-            <MessageCircle className="w-6 h-6" />
+            <MessageCircle className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" style={{ transitionTimingFunction: 'cubic-bezier(0.34,1.56,0.64,1)' }} />
             Chat on WhatsApp
           </a>
           <p className="mt-4 text-sm text-white/60">Typically replies within minutes</p>
@@ -761,25 +894,33 @@ function FinalCTASection() {
   return (
     <section ref={ref} className="py-20 lg:py-28 bg-slate-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div className={`transition-all duration-700 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-          <h2 className="text-3xl lg:text-5xl font-bold text-navy mb-6">
+        <div
+          style={{
+            opacity: isVisible ? 1 : 0,
+            transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.96)',
+            transition: 'opacity 800ms cubic-bezier(0.25,0.46,0.45,0.94), transform 800ms cubic-bezier(0.34,1.56,0.64,1)',
+          }}
+        >
+          <h2 className="text-3xl lg:text-5xl font-bold text-navy mb-6 text-balance">
             Your Financial Reset Starts Here
           </h2>
           <p className="text-lg text-slate-600 mb-10 max-w-2xl mx-auto">
-            Thousands of South Africans have already taken the first step. 
-            Don't let debt control your life any longer.
+            Thousands of South Africans have already taken the first step.
+            {" Don't"} let debt control your life any longer.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="#contact"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-teal text-white font-semibold rounded-lg hover:bg-teal-dark transition-all hover:shadow-lg hover:shadow-teal/25"
+              className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-teal text-white font-semibold rounded-xl hover:bg-teal-dark transition-all duration-300 hover:shadow-lg hover:shadow-teal/25 hover:scale-[1.04] active:scale-[0.98]"
+              style={{ transitionTimingFunction: 'cubic-bezier(0.34,1.56,0.64,1)' }}
             >
               Check If You Qualify
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
             </a>
             <a
               href={`tel:${WHATSAPP_NUMBER}`}
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-navy text-white font-semibold rounded-lg hover:bg-navy-light transition-all"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-navy text-white font-semibold rounded-xl hover:bg-navy-light transition-all duration-300 hover:scale-[1.04] active:scale-[0.98]"
+              style={{ transitionTimingFunction: 'cubic-bezier(0.34,1.56,0.64,1)' }}
             >
               <Phone className="w-5 h-5" />
               Call Us Now
@@ -891,9 +1032,13 @@ function StickyCTA() {
   }, []);
 
   return (
-    <div className={`fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-lg transition-transform duration-500 lg:hidden ${
-      visible ? 'translate-y-0' : 'translate-y-full'
-    }`}>
+    <div
+      className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-lg lg:hidden"
+      style={{
+        transform: visible ? 'translateY(0)' : 'translateY(100%)',
+        transition: 'transform 600ms cubic-bezier(0.34,1.56,0.64,1)',
+      }}
+    >
       <div className="flex items-center gap-3 p-4 max-w-lg mx-auto">
         <a
           href={WHATSAPP_LINK}
