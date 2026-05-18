@@ -22,6 +22,7 @@ import {
   AlertCircle,
   Send
 } from 'lucide-react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 /* ============================================================
    MR TELLy Landing Page
@@ -932,6 +933,7 @@ export default function App() {
       <FinalCTASection />
       <Footer />
       <StickyCTA />
+      <SpeedInsights />
     </div>
   );
 }
